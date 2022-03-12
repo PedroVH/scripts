@@ -1,0 +1,62 @@
+#!/bin/python
+import os
+import requests
+
+updatable = True
+
+owner = "GloriousEggroll"
+repo = "proton-ge-custom"
+
+# get latest info
+response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest").json()
+tag_name: str = response["tag_name"]
+version: int = int(''.join(filter(str.isdigit, tag_name)))
+download_url: str = response["assets"][1]["browser_download_url"]
+
+# find folder
+path = f"{os.environ['HOME']}/.steam/root/compatibilitytools.d/"
+if not os.path.isdir(path):
+    os.makedirs(path)
+
+# gathers all installed versions
+all_versions:list[str] = [folder for folder in os.listdir(path) if "Proton" in folder]
+
+# get latest
+for v in all_versions:
+    v_num = int(''.join(filter(str.isdigit, v)))
+    if (v_num >= version):
+        updatable = False
+
+
+def do_download(url, file_name):
+    # open in binary mode
+    with open(file_name, "wb") as file:
+        # get request
+        response = requests.get(url)
+        # write to file
+        file.write(response.content)
+
+
+def do_update():
+    down_filename = f"{tag_name}.tar.gz"
+    down_path = os.path.join(path, down_filename)
+    new_path = os.path.join(path, tag_name)
+    # download
+    do_download(download_url, down_path)
+    # extract
+    if not os.path.exists(new_path):
+        os.mkdir(new_path)
+    os.system(f"tar --strip-components 1 -xf {down_path} -C {new_path}")
+    # exclude tar
+    os.remove(down_path)
+    
+    print(f"{tag_name} installed!")
+
+
+if not updatable:
+    print(f"{tag_name} is already the latest version.")
+else:
+    print("There is a new Proton-GE release.")
+    res = input(f"Install {tag_name}? ")
+    if "N" not in res.upper():
+        do_update()

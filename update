@@ -1,0 +1,5 @@
+#!/bin/bash
+
+yay
+flatpak update
+update-proton-ge
