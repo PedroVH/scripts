@@ -1,0 +1,63 @@
+#!/bin/python
+
+import subprocess
+import os
+import requests
+
+author = "ebkr"
+repo = "r2modmanPlus"
+link = f"https://api.github.com/repos/{author}/{repo}/releases/latest"
+
+# gets info from repository
+content = requests.get(link).json()
+tag_name = content["tag_name"]
+version = (int)(''.join(filter(str.isdigit, tag_name)))
+
+# check installed
+check_output = subprocess.run(["sudo", "pacman", "-Q"], stdout=subprocess.PIPE)
+
+current_version = -1
+for package in check_output.stdout.decode('utf-8').split("\n"):
+    if "r2modman" in package:
+        search = package[package.find(" ")+1 : package.find("-")]
+        current_version = (int)(''.join(filter(str.isdigit, search)))
+        break
+
+
+def do_download(url, file_name):
+    # open in binary mode
+    with open(file_name, "wb") as file:
+        # get request
+        response = requests.get(url)
+        # write to file
+        file.write(response.content)
+
+
+def install_latest(prompt):
+    print(prompt)
+    r = input("Install? ")
+    if "N" not in r.upper():
+        assets = content["assets"]
+        for a in assets:
+            if "pacman" in a["name"]:
+                asset = a
+                break
+
+        do_download(asset["browser_download_url"], asset["name"])
+        if os.path.isfile(asset["name"]):
+            os.system(f"sudo pacman -U {asset['name']}")
+            os.remove(asset["name"])
+            exit()
+        else:
+            exit("Download not found.")
+    else:
+        exit("Nothing was done.")
+
+
+if (current_version == -1):
+    install_latest(f"r2modman is not currently installed.")
+
+if version <= current_version:
+    exit(f"r2modman {tag_name} is already the latest version.")
+else:
+    install_latest(f"r2modman {tag_name} is available.")
