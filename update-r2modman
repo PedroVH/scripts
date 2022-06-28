@@ -25,6 +25,7 @@ for package in check_output.stdout.decode('utf-8').split("\n"):
 
 
 def do_download(url, file_name):
+    print("Downloading...")
     # open in binary mode
     with open(file_name, "wb") as file:
         # get request
@@ -47,7 +48,7 @@ def install_latest(prompt):
         if os.path.isfile(asset["name"]):
             os.system(f"sudo pacman -U {asset['name']}")
             os.remove(asset["name"])
-            exit()
+            exit("Latest version installed.")
         else:
             exit("Download not found.")
     else:

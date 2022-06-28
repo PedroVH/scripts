@@ -1,6 +1,9 @@
 #!/bin/bash
-
+echo :: yay
 yay
+echo $'\n':: flatpak
 flatpak update
+echo $'\n':: proton-ge
 update-proton-ge
+echo $'\n':: r2modman
 update-r2modman
